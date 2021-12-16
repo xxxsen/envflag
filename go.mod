@@ -1,4 +1,4 @@
-module envflag
+module github.com/xxxsen/envflag
 
 go 1.15
 
