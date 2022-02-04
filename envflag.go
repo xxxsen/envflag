@@ -12,7 +12,9 @@ type EnvFlag struct {
 }
 
 func New(name string, handler flag.ErrorHandling) *EnvFlag {
-	return &EnvFlag{fs: flag.NewFlagSet(name, handler)}
+	return &EnvFlag{
+		fs: flag.NewFlagSet(name, handler),
+	}
 }
 
 func (ev *EnvFlag) Parse(args ...string) error {
@@ -29,6 +31,7 @@ func (ev *EnvFlag) rebuildName(name string) string {
 }
 
 func (ev *EnvFlag) resetAsEnv() {
+	//build env value
 	ev.fs.VisitAll(func(f *flag.Flag) {
 		value, ok := os.LookupEnv(ev.rebuildName(f.Name))
 		if !ok {
@@ -70,6 +73,18 @@ func (ev *EnvFlag) Bool(name string, value bool, usage string) *bool {
 	return ev.fs.Bool(name, value, usage)
 }
 
+func (ev *EnvFlag) ProtoString(name string, value string, usage string) *string {
+	out := new(string)
+	ev.fs.Var(newProtoString(value, out), name, usage)
+	return out
+}
+
+func (ev *EnvFlag) ProtoBytes(name string, value []byte, usage string) *[]byte {
+	out := new([]byte)
+	ev.fs.Var(newProtoBytes(value, out), name, usage)
+	return out
+}
+
 func String(name string, value string, usage string) *string {
 	return DefaultParser.String(name, value, usage)
 }
@@ -100,6 +115,10 @@ func Int(name string, value int, usage string) *int {
 
 func Bool(name string, value bool, usage string) *bool {
 	return DefaultParser.Bool(name, value, usage)
+}
+
+func ProtoString(name string, value string, usage string) *string {
+	return DefaultParser.ProtoString(name, value, usage)
 }
 
 func Raw() *flag.FlagSet {

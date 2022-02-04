@@ -1,6 +1,8 @@
 package envflag
 
 import (
+	"encoding/base64"
+	"encoding/hex"
 	"flag"
 	"os"
 	"testing"
@@ -52,5 +54,58 @@ func TestSpecName1(t *testing.T) {
 		os.Setenv("C_D", "6")
 		ev.Parse("--c.d=5")
 		assert.Equal(t, int64(6), *val)
+	}
+}
+
+func TestProtoBytes(t *testing.T) {
+	{
+		ev := New("haha", flag.PanicOnError)
+		val := ev.ProtoBytes("byte", []byte("hello world"), "aaa")
+		ev.Parse("--byte=base64://" + base64.StdEncoding.EncodeToString([]byte("this is a test")))
+		assert.Equal(t, []byte("this is a test"), *val)
+	}
+	{
+		ev := New("haha", flag.PanicOnError)
+		val := ev.ProtoBytes("byte", []byte("hello world"), "aaa")
+		assert.Equal(t, []byte("hello world"), *val)
+	}
+	{
+		ev := New("haha", flag.PanicOnError)
+		val := ev.ProtoBytes("byte", []byte("hello world"), "aaa")
+		ev.Parse("--byte=hex://" + hex.EncodeToString([]byte("this is a test")))
+		assert.Equal(t, []byte("this is a test"), *val)
+	}
+}
+
+func TestProtoString(t *testing.T) {
+	{
+		ev := New("haha", flag.PanicOnError)
+		val := ev.ProtoString("str", "hello world", "aaa")
+		ev.Parse("--str=base64://" + base64.StdEncoding.EncodeToString([]byte("this is a test")))
+		assert.Equal(t, "this is a test", *val)
+	}
+	{
+		ev := New("haha", flag.PanicOnError)
+		val := ev.ProtoString("str", "hello world", "aaa")
+		assert.Equal(t, "hello world", *val)
+	}
+	{
+		ev := New("haha", flag.PanicOnError)
+		val := ev.ProtoString("str", "hello world", "aaa")
+		ev.Parse("--str=hex://" + hex.EncodeToString([]byte("this is a test")))
+		assert.Equal(t, "this is a test", *val)
+	}
+	{
+		ev := New("haha", flag.PanicOnError)
+		val := ev.ProtoString("str", "hello world", "aaa")
+		ev.Parse("--str=direct://" + "this is a test")
+		assert.Equal(t, "this is a test", *val)
+	}
+	{
+		ev := New("haha", flag.PanicOnError)
+		val := ev.ProtoString("str", "hello world", "aaa")
+		os.Setenv("STR", "hex://"+hex.EncodeToString([]byte("this is a test2")))
+		ev.Parse("--str=hex://" + hex.EncodeToString([]byte("this is a test")))
+		assert.Equal(t, "this is a test2", *val)
 	}
 }
